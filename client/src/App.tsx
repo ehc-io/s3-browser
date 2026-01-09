@@ -2,9 +2,13 @@ import { useEffect } from 'react';
 import { useBrowserStore } from './store/browserStore';
 import { AppLayout } from './components/layout/AppLayout';
 import { ToastContainer } from './components/common/ToastContainer';
+import { useDeepLink } from './hooks/useDeepLink';
 
 function App() {
   const { theme } = useBrowserStore();
+
+  // Handle deep-linking via URL parameters
+  useDeepLink();
 
   useEffect(() => {
     // Apply theme class to document

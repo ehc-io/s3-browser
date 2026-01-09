@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useBrowserStore } from '../../store/browserStore';
 import { useFiles } from '../../hooks/useFiles';
 import { Breadcrumbs } from './Breadcrumbs';
@@ -20,6 +21,7 @@ export function FileBrowser() {
     setPageSize,
     searchQuery,
     searchResults,
+    selectFile,
   } = useBrowserStore();
 
   const { data, isLoading, error } = useFiles(
@@ -28,6 +30,28 @@ export function FileBrowser() {
     continuationToken,
     pageSize
   );
+
+  // Handle deep-link file auto-selection
+  useEffect(() => {
+    const target = window.__deepLinkTarget;
+    if (!target || !data) return;
+
+    // Check if we're in the right bucket and prefix
+    if (currentBucket !== target.bucket || currentPrefix !== target.prefix) return;
+
+    // Find and select the target file
+    if (target.filename) {
+      const file = data.files.find((f) => f.name === target.filename);
+      if (file) {
+        selectFile(file);
+        // Clear the target after selection
+        delete window.__deepLinkTarget;
+      }
+    } else {
+      // Just navigating to a folder, clear target
+      delete window.__deepLinkTarget;
+    }
+  }, [data, currentBucket, currentPrefix, selectFile]);
 
   // No bucket selected
   if (!currentBucket) {
