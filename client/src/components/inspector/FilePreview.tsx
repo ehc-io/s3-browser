@@ -7,14 +7,15 @@ interface FilePreviewProps {
   type: FileType;
   url: string;
   filename: string;
+  onMediaClick?: () => void;
 }
 
-export function FilePreview({ type, url, filename }: FilePreviewProps) {
+export function FilePreview({ type, url, filename, onMediaClick }: FilePreviewProps) {
   switch (type) {
     case 'image':
-      return <ImagePreview url={url} alt={filename} />;
+      return <ImagePreview url={url} alt={filename} onClick={onMediaClick} />;
     case 'video':
-      return <VideoPreview url={url} />;
+      return <VideoPreview url={url} onClick={onMediaClick} />;
     default:
       return (
         <div className="flex flex-col items-center justify-center h-48 bg-gray-100 dark:bg-slate-800 rounded-lg">

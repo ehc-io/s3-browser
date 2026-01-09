@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { X, DownloadSimple, Copy } from '@phosphor-icons/react';
 import { useBrowserStore } from '../../store/browserStore';
 import { usePresignedUrl } from '../../hooks/usePresignedUrl';
@@ -5,9 +6,11 @@ import { formatFileSize, formatDate, getFileType } from '@s3-browser/shared';
 import { FilePreview } from './FilePreview';
 import { FileIcon } from '../icons/FileIcon';
 import { Skeleton } from '../common/Skeleton';
+import { Lightbox } from '../common/Lightbox';
 import { useToast } from '../../store/toastStore';
 
 export function InspectorPanel() {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const { selectedFile, selectFile, currentBucket } = useBrowserStore();
   const { data: presignData, isLoading: presignLoading } = usePresignedUrl(
     currentBucket,
@@ -18,6 +21,7 @@ export function InspectorPanel() {
   if (!selectedFile) return null;
 
   const fileType = getFileType(selectedFile.name);
+  const isMedia = fileType === 'image' || fileType === 'video';
 
   const handleDownload = () => {
     if (presignData?.url) {
@@ -73,6 +77,7 @@ export function InspectorPanel() {
             type={fileType}
             url={presignData.url}
             filename={selectedFile.name}
+            onMediaClick={isMedia ? () => setLightboxOpen(true) : undefined}
           />
         ) : (
           <div className="flex items-center justify-center h-48 bg-gray-100 dark:bg-slate-800 rounded-lg">
@@ -126,6 +131,17 @@ export function InspectorPanel() {
           <span className="hidden sm:inline">Copy S3 URI</span>
         </button>
       </div>
+
+      {/* Lightbox for fullscreen preview */}
+      {presignData?.url && isMedia && (
+        <Lightbox
+          isOpen={lightboxOpen}
+          onClose={() => setLightboxOpen(false)}
+          type={fileType as 'image' | 'video'}
+          url={presignData.url}
+          alt={selectedFile.name}
+        />
+      )}
     </div>
   );
 }

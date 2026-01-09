@@ -4,9 +4,10 @@ import { Skeleton } from '../common/Skeleton';
 interface ImagePreviewProps {
   url: string;
   alt: string;
+  onClick?: () => void;
 }
 
-export function ImagePreview({ url, alt }: ImagePreviewProps) {
+export function ImagePreview({ url, alt, onClick }: ImagePreviewProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -21,7 +22,10 @@ export function ImagePreview({ url, alt }: ImagePreviewProps) {
   }
 
   return (
-    <div className="relative bg-gray-100 dark:bg-slate-800 rounded-lg overflow-hidden">
+    <div
+      className={`relative bg-gray-100 dark:bg-slate-800 rounded-lg overflow-hidden ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
       {loading && <Skeleton className="absolute inset-0" />}
       <img
         src={url}
