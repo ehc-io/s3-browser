@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { X } from '@phosphor-icons/react';
+import { useEffect, useState } from 'react';
+import { X, MagnifyingGlassPlus, MagnifyingGlassMinus } from '@phosphor-icons/react';
 
 interface LightboxProps {
   isOpen: boolean;
@@ -10,10 +10,23 @@ interface LightboxProps {
 }
 
 export function Lightbox({ isOpen, onClose, type, url, alt }: LightboxProps) {
+  const [isZoomed, setIsZoomed] = useState(false);
+
+  // Reset zoom when lightbox opens/closes or URL changes
+  useEffect(() => {
+    setIsZoomed(false);
+  }, [isOpen, url]);
+
   // Close on Escape key and manage body scroll
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (isZoomed) {
+          setIsZoomed(false);
+        } else {
+          onClose();
+        }
+      }
     };
 
     if (isOpen) {
@@ -25,14 +38,27 @@ export function Lightbox({ isOpen, onClose, type, url, alt }: LightboxProps) {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = '';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, isZoomed, onClose]);
 
   if (!isOpen) return null;
+
+  const handleImageClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsZoomed(!isZoomed);
+  };
+
+  const handleBackdropClick = () => {
+    if (isZoomed) {
+      setIsZoomed(false);
+    } else {
+      onClose();
+    }
+  };
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
-      onClick={onClose}
+      onClick={handleBackdropClick}
     >
       {/* Close button */}
       <button
@@ -43,18 +69,47 @@ export function Lightbox({ isOpen, onClose, type, url, alt }: LightboxProps) {
         <X size={32} weight="bold" />
       </button>
 
-      {/* Content - stop propagation to prevent closing when clicking media */}
-      <div
-        className="max-w-[95vw] max-h-[95vh] flex items-center justify-center"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {type === 'image' ? (
+      {/* Zoom indicator for images */}
+      {type === 'image' && (
+        <div className="absolute top-4 left-4 flex items-center gap-2 text-white/60 text-sm z-10">
+          {isZoomed ? (
+            <>
+              <MagnifyingGlassMinus size={20} />
+              <span>Click to fit</span>
+            </>
+          ) : (
+            <>
+              <MagnifyingGlassPlus size={20} />
+              <span>Click to zoom</span>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Content */}
+      {type === 'image' ? (
+        <div
+          className={`${isZoomed ? 'overflow-auto w-full h-full' : 'flex items-center justify-center'}`}
+          onClick={(e) => e.stopPropagation()}
+        >
           <img
             src={url}
             alt={alt}
-            className="max-w-full max-h-[95vh] object-contain"
+            onClick={handleImageClick}
+            className={`
+              ${isZoomed
+                ? 'max-w-none cursor-zoom-out m-auto block'
+                : 'max-w-[95vw] max-h-[95vh] object-contain cursor-zoom-in'
+              }
+            `}
+            style={isZoomed ? { margin: '20px auto', display: 'block' } : undefined}
           />
-        ) : (
+        </div>
+      ) : (
+        <div
+          className="max-w-[95vw] max-h-[95vh] flex items-center justify-center"
+          onClick={(e) => e.stopPropagation()}
+        >
           <video
             src={url}
             controls
@@ -63,8 +118,8 @@ export function Lightbox({ isOpen, onClose, type, url, alt }: LightboxProps) {
           >
             Your browser does not support the video tag.
           </video>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
