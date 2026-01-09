@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+*/node_modules
+
+# Build artifacts (will be built in container)
+dist
+*/dist
+
+# Git
+.git
+.gitignore
+
+# Documentation
+docs
+*.md
+!package.json
+
+# Environment files (passed via docker-compose)
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test files
+*.test.ts
+*.spec.ts
+__tests__
+coverage
