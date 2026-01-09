@@ -55,7 +55,7 @@ async function getBucketRegion(bucket: string): Promise<string> {
 }
 
 // Get the appropriate S3 client for a bucket
-async function getClientForBucket(bucket: string): Promise<S3Client> {
+export async function getClientForBucket(bucket: string): Promise<S3Client> {
   const region = await getBucketRegion(bucket);
   return getClientForRegion(region);
 }

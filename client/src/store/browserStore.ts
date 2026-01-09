@@ -26,6 +26,10 @@ interface BrowserState {
   previousTokens: string[];
   pageSize: number;
 
+  // Search state
+  searchQuery: string;
+  searchResults: S3Object[] | null;
+
   // Actions
   setBucket: (bucket: string | null) => void;
   setPrefix: (prefix: string) => void;
@@ -42,6 +46,9 @@ interface BrowserState {
   toggleSortDirection: () => void;
   setInspectorWidth: (width: number) => void;
   setPageSize: (size: number) => void;
+  setSearchQuery: (query: string) => void;
+  setSearchResults: (results: S3Object[] | null) => void;
+  clearSearch: () => void;
 }
 
 export const useBrowserStore = create<BrowserState>()((set, get) => ({
@@ -56,6 +63,8 @@ export const useBrowserStore = create<BrowserState>()((set, get) => ({
   continuationToken: undefined,
   previousTokens: [],
   pageSize: parseInt(localStorage.getItem('s3browser-page-size') || '10', 10),
+  searchQuery: '',
+  searchResults: null,
 
   // Actions
   setBucket: (bucket) =>
@@ -65,6 +74,8 @@ export const useBrowserStore = create<BrowserState>()((set, get) => ({
       selectedFile: null,
       continuationToken: undefined,
       previousTokens: [],
+      searchQuery: '',
+      searchResults: null,
     }),
 
   setPrefix: (prefix) =>
@@ -73,6 +84,8 @@ export const useBrowserStore = create<BrowserState>()((set, get) => ({
       selectedFile: null,
       continuationToken: undefined,
       previousTokens: [],
+      searchQuery: '',
+      searchResults: null,
     }),
 
   navigateToFolder: (folderKey) =>
@@ -81,6 +94,8 @@ export const useBrowserStore = create<BrowserState>()((set, get) => ({
       selectedFile: null,
       continuationToken: undefined,
       previousTokens: [],
+      searchQuery: '',
+      searchResults: null,
     }),
 
   navigateUp: () => {
@@ -164,6 +179,16 @@ export const useBrowserStore = create<BrowserState>()((set, get) => ({
       previousTokens: [],
     });
   },
+
+  setSearchQuery: (query) => set({ searchQuery: query }),
+
+  setSearchResults: (results) => set({ searchResults: results }),
+
+  clearSearch: () =>
+    set({
+      searchQuery: '',
+      searchResults: null,
+    }),
 }));
 
 // Derived selectors

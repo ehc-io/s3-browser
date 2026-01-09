@@ -28,6 +28,14 @@ export interface FileListResponse {
   bucket: string;
 }
 
+// Search types
+export interface SearchResult {
+  results: S3Object[];
+  totalIndexed: number;
+  query: string;
+  bucket: string;
+}
+
 // Presign types
 export interface PresignRequest {
   bucket: string;

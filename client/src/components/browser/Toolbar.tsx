@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { MagnifyingGlass, SortAscending, SortDescending, CaretDown } from '@phosphor-icons/react';
+import { MagnifyingGlass, SortAscending, SortDescending, CaretDown, X, CircleNotch } from '@phosphor-icons/react';
 import { useBrowserStore, type SortField } from '../../store/browserStore';
+import { useSearch } from '../../hooks/useSearch';
+import { useDebounce } from '../../hooks/useDebounce';
 
 const sortOptions: { value: SortField; label: string }[] = [
   { value: 'name', label: 'Name' },
@@ -10,8 +12,33 @@ const sortOptions: { value: SortField; label: string }[] = [
 
 export function Toolbar() {
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
-  const { sortField, sortDirection, setSortField, toggleSortDirection } = useBrowserStore();
+  const {
+    sortField,
+    sortDirection,
+    setSortField,
+    toggleSortDirection,
+    currentBucket,
+    searchQuery,
+    setSearchQuery,
+    setSearchResults,
+    clearSearch,
+  } = useBrowserStore();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Debounce search query (300ms)
+  const debouncedQuery = useDebounce(searchQuery, 300);
+
+  // Search hook
+  const { data: searchData, isLoading: isSearching } = useSearch(currentBucket, debouncedQuery);
+
+  // Update search results when data changes
+  useEffect(() => {
+    if (searchData) {
+      setSearchResults(searchData.results);
+    } else if (!debouncedQuery) {
+      setSearchResults(null);
+    }
+  }, [searchData, debouncedQuery, setSearchResults]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -86,9 +113,25 @@ export function Toolbar() {
         />
         <input
           type="text"
-          placeholder="Search"
-          className="w-full pl-9 pr-3 py-1.5 text-sm rounded-lg border border-border-light dark:border-border-dark bg-surface-primary dark:bg-dark-primary focus:outline-none focus:ring-2 focus:ring-accent-light dark:focus:ring-accent-dark"
+          placeholder="Search files..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-9 pr-8 py-1.5 text-sm rounded-lg border border-border-light dark:border-border-dark bg-surface-primary dark:bg-dark-primary focus:outline-none focus:ring-2 focus:ring-accent-light dark:focus:ring-accent-dark"
         />
+        {/* Loading indicator or clear button */}
+        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+          {isSearching ? (
+            <CircleNotch size={16} className="animate-spin text-accent-light dark:text-accent-dark" />
+          ) : searchQuery ? (
+            <button
+              onClick={clearSearch}
+              className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              title="Clear search"
+            >
+              <X size={14} className="text-text-secondary-light dark:text-text-secondary-dark" />
+            </button>
+          ) : null}
+        </div>
       </div>
     </div>
   );

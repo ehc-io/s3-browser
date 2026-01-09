@@ -4,6 +4,7 @@ import path from 'path';
 import { bucketsRouter } from './routes/buckets';
 import { filesRouter } from './routes/files';
 import { presignRouter } from './routes/presign';
+import { searchRouter } from './routes/search';
 import { errorHandler } from './middleware/errorHandler';
 
 export const app = express();
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use('/api/buckets', bucketsRouter);
 app.use('/api/files', filesRouter);
 app.use('/api/presign', presignRouter);
+app.use('/api/search', searchRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

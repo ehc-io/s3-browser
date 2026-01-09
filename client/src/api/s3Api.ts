@@ -2,6 +2,7 @@ import type {
   BucketsResponse,
   FileListResponse,
   PresignResponse,
+  SearchResult,
   ApiError,
 } from '@s3-browser/shared';
 
@@ -66,4 +67,18 @@ export async function deleteFile(
     body: JSON.stringify({ bucket, key }),
   });
   return handleResponse<DeleteResponse>(response);
+}
+
+export async function searchFiles(
+  bucket: string,
+  query: string,
+  limit: number = 50
+): Promise<SearchResult> {
+  const params = new URLSearchParams({
+    bucket,
+    query,
+    limit: limit.toString(),
+  });
+  const response = await fetch(`${API_BASE}/search?${params}`);
+  return handleResponse<SearchResult>(response);
 }

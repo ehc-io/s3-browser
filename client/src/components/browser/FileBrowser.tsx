@@ -6,11 +6,21 @@ import { FileTable } from './FileTable';
 import { Pagination } from './Pagination';
 import { EmptyState } from '../common/EmptyState';
 import { Skeleton } from '../common/Skeleton';
-import { FolderOpen } from '@phosphor-icons/react';
+import { FolderOpen, MagnifyingGlass } from '@phosphor-icons/react';
 
 export function FileBrowser() {
-  const { currentBucket, currentPrefix, continuationToken, goToNextPage, goToPreviousPage, previousTokens, pageSize, setPageSize } =
-    useBrowserStore();
+  const {
+    currentBucket,
+    currentPrefix,
+    continuationToken,
+    goToNextPage,
+    goToPreviousPage,
+    previousTokens,
+    pageSize,
+    setPageSize,
+    searchQuery,
+    searchResults,
+  } = useBrowserStore();
 
   const { data, isLoading, error } = useFiles(
     currentBucket,
@@ -32,6 +42,11 @@ export function FileBrowser() {
     );
   }
 
+  // Determine what to display based on search state
+  const isSearchActive = searchQuery.length >= 2 && searchResults !== null;
+  const displayFiles = isSearchActive ? searchResults : data?.files || [];
+  const displayFolders = isSearchActive ? [] : data?.folders || [];
+
   return (
     <div className="h-full flex flex-col">
       {/* Header with breadcrumbs and toolbar */}
@@ -40,9 +55,21 @@ export function FileBrowser() {
         <Toolbar />
       </div>
 
+      {/* Search results info */}
+      {isSearchActive && (
+        <div className="flex-shrink-0 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-border-light dark:border-border-dark">
+          <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
+            <MagnifyingGlass size={16} />
+            <span>
+              Found {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{searchQuery}"
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* File list */}
       <div className="flex-1 overflow-auto">
-        {isLoading && (
+        {isLoading && !isSearchActive && (
           <div className="p-4 space-y-2">
             {[...Array(8)].map((_, i) => (
               <Skeleton key={i} className="h-12 rounded-lg" />
@@ -50,7 +77,7 @@ export function FileBrowser() {
           </div>
         )}
 
-        {error && (
+        {error && !isSearchActive && (
           <div className="p-4">
             <div className="p-4 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg">
               {error.message}
@@ -58,11 +85,24 @@ export function FileBrowser() {
           </div>
         )}
 
-        {data && <FileTable folders={data.folders} files={data.files} />}
+        {(data || isSearchActive) && (
+          <FileTable folders={displayFolders} files={displayFiles} />
+        )}
+
+        {/* No search results */}
+        {isSearchActive && searchResults.length === 0 && (
+          <div className="p-8 text-center">
+            <EmptyState
+              icon={MagnifyingGlass}
+              title="No results found"
+              description={`No files matching "${searchQuery}" were found in this bucket`}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Pagination */}
-      {data && (data.isTruncated || previousTokens.length > 0) && (
+      {/* Pagination - only show when not searching */}
+      {!isSearchActive && data && (data.isTruncated || previousTokens.length > 0) && (
         <div className="flex-shrink-0 border-t border-border-light dark:border-border-dark">
           <Pagination
             hasNext={data.isTruncated}
