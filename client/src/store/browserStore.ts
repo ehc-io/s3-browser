@@ -23,7 +23,7 @@ interface BrowserState {
 
   // Pagination
   continuationToken: string | undefined;
-  previousTokens: string[];
+  previousTokens: (string | undefined)[];
   pageSize: number;
 
   // Search state
@@ -131,9 +131,8 @@ export const useBrowserStore = create<BrowserState>()((set, get) => ({
   goToNextPage: (nextToken) => {
     const { continuationToken, previousTokens } = get();
     set({
-      previousTokens: continuationToken
-        ? [...previousTokens, continuationToken]
-        : previousTokens,
+      // Always push current token (even undefined for page 1) to enable going back
+      previousTokens: [...previousTokens, continuationToken],
       continuationToken: nextToken,
     });
   },
