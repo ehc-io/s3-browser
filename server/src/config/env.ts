@@ -18,9 +18,19 @@ const envSchema = z.object({
   S3BROWSER_BUCKET_ALLOWLIST: z.string().optional(),
   S3BROWSER_PRESIGN_TTL_SECONDS: z.coerce.number().default(900),
   PORT: z.coerce.number().default(3001),
+
+  // HTTP basic auth - both must be set for auth to be enforced
+  S3BROWSER_AUTH_USER: z.string().min(1).optional(),
+  S3BROWSER_AUTH_PASSWORD: z.string().min(1).optional(),
 });
 
-const parsed = envSchema.safeParse(process.env);
+// Setting only one half of the credential pair would silently leave the app open.
+const parsed = envSchema
+  .refine(
+    (e) => Boolean(e.S3BROWSER_AUTH_USER) === Boolean(e.S3BROWSER_AUTH_PASSWORD),
+    'S3BROWSER_AUTH_USER and S3BROWSER_AUTH_PASSWORD must be set together'
+  )
+  .safeParse(process.env);
 
 if (!parsed.success) {
   console.error('Invalid environment variables:');

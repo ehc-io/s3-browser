@@ -6,12 +6,16 @@ import { filesRouter } from './routes/files';
 import { presignRouter } from './routes/presign';
 import { searchRouter } from './routes/search';
 import { errorHandler } from './middleware/errorHandler';
+import { basicAuth } from './middleware/basicAuth';
 
 export const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Gate everything (API + static SPA) behind basic auth when credentials are configured
+app.use(basicAuth);
 
 // API Routes
 app.use('/api/buckets', bucketsRouter);
